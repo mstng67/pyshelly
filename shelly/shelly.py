@@ -27,6 +27,9 @@ class Shelly1():
 
         self.shelly_base_url = f"http://{self.host}"
 
+        # Initialize an oscillation thread name
+        self._oscillation_thread = None
+
         # Initialize oscillation thread stop flag
         self._stop_oscillation = True
 
@@ -124,10 +127,14 @@ class Shelly1():
 
                 time.sleep(period)
         else:
+            # test for re-entry
+            if self._oscillation_thread and self._oscillation_thread.is_alive():
+                raise Exception('oscillation in progress')
+
             # "background" as a thread
             t = threading.Thread(target=self.oscillate, args=(relay_id, period,), daemon=True)
             t.start()
-            return t
+            self._oscillation_thread = t
 
     def oscillate_timeout(self, relay_id, period, timeout, block=True, start_state=True, final_state=False):
         '''oscillate until timeout has elapsed
@@ -181,7 +188,7 @@ class Shelly1():
         t.start()
 
         if block:
-            t.join()
+            self._oscillation_thread.join()
 
     def oscillate_cycles(self, relay_id, period, cycles, block=True, start_state=True, final_state=False):
         '''oscillate a specific cycle count
@@ -231,11 +238,15 @@ class Shelly1():
             if self.get_relay_state(relay_id).value != final_state:
                 self.power(relay_id, final_state)
         else:
+            # test for re-entry
+            if self._oscillation_thread and self._oscillation_thread.is_alive():
+                raise Exception('oscillation in progress')
+
             # "background" as a thread
             t = threading.Thread(target=self.oscillate_cycles, args=(relay_id, period, cycles,), \
                 kwargs={"start_state": start_state, "final_state": final_state}, daemon=True)
             t.start()
-            return t
+            self._oscillation_thread = t
 
     def stop_oscillation(self):
         '''stop an oscillation operation'''

@@ -1,1 +1,1 @@
-from .libshelly import RelayState, Shelly1
+from .shelly import RelayState, Shelly1

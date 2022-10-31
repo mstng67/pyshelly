@@ -114,6 +114,10 @@ class Shelly1():
         assert period >= 0.05
         assert type(block) == bool
 
+        # test for re-entry
+        if self._oscillation_thread and self._oscillation_thread.is_alive():
+            raise Exception('oscillation in progress')
+
         if block:
             # Reset initial state of the flag
             self._stop_oscillation = False
@@ -127,10 +131,6 @@ class Shelly1():
 
                 time.sleep(period)
         else:
-            # test for re-entry
-            if self._oscillation_thread and self._oscillation_thread.is_alive():
-                raise Exception('oscillation in progress')
-
             # "background" as a thread
             t = threading.Thread(target=self.oscillate, args=(relay_id, period,), daemon=True)
             t.start()
@@ -214,6 +214,10 @@ class Shelly1():
         assert type(start_state) == bool
         assert type(final_state) == bool
 
+        # test for re-entry
+        if self._oscillation_thread and self._oscillation_thread.is_alive():
+            raise Exception('oscillation in progress')
+
         if block:
             # Reset initial state of the flag
             self._stop_oscillation = False
@@ -238,10 +242,6 @@ class Shelly1():
             if self.get_relay_state(relay_id).value != final_state:
                 self.power(relay_id, final_state)
         else:
-            # test for re-entry
-            if self._oscillation_thread and self._oscillation_thread.is_alive():
-                raise Exception('oscillation in progress')
-
             # "background" as a thread
             t = threading.Thread(target=self.oscillate_cycles, args=(relay_id, period, cycles,), \
                 kwargs={"start_state": start_state, "final_state": final_state}, daemon=True)

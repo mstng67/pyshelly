@@ -27,7 +27,6 @@ s.toggle(0)
 NOTE: This project only supports the Shelly 1 since it is the only hardware from Shelly that I currently have.
 
 ## TODOs
-- Integration with poetry
 - Thread safety
 - Username and password support
 - Settings adjustment support
